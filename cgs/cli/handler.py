@@ -31,7 +31,7 @@ class CgsCliHandler(L1CliHandler):
         """
         return self.modes[ConfigCommandMode]
 
-    def default_mode_service(self):
+    def enable_mode_service(self):
         """
 
         :rtype: cloudshell.cli.cli_service.CliService

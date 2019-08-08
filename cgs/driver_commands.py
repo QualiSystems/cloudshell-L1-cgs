@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from cloudshell.layer_one.core.driver_commands_interface import DriverCommandsInterface
+from cloudshell.layer_one.core.response.response_info import ResourceDescriptionResponseInfo, GetStateIdResponseInfo, \
+    AttributeValueResponseInfo
+
 from cgs.cli.handler import CgsCliHandler
 from cgs.command_actions.autoload import CgsAutoloadActions
+from cgs.flows.mapping_flow import MappingFlow
 
 
 class DriverCommands(DriverCommandsInterface):
@@ -39,9 +43,9 @@ class DriverCommands(DriverCommandsInterface):
                 self._logger.info(device_info)
         """
         self._cli_handler.define_session_attributes(address, username, password)
-        with self._cli_handler.default_mode_service() as session:
-            actions = CgsAutoloadActions(session, self._logger)
-            self._logger.info(actions.get_switch_serial())
+        with self._cli_handler.enable_mode_service() as cli_service:
+            actions = CgsAutoloadActions(cli_service=cli_service, logger=self._logger)
+            self._logger.info(actions.help())
 
     def get_state_id(self):
         """
@@ -57,7 +61,8 @@ class DriverCommands(DriverCommandsInterface):
                 chassis_name = session.send_command('show chassis name')
                 return chassis_name
         """
-        raise NotImplementedError
+        self._logger.info("Command 'get state id' called")
+        return GetStateIdResponseInfo("-1")
 
     def set_state_id(self, state_id):
         """
@@ -73,7 +78,7 @@ class DriverCommands(DriverCommandsInterface):
                 # Execute command
                 session.send_command('set chassis name {}'.format(state_id))
         """
-        raise NotImplementedError
+        self._logger.info('set_state_id {}'.format(state_id))
 
     def map_bidi(self, src_port, dst_port):
         """
@@ -90,7 +95,8 @@ class DriverCommands(DriverCommandsInterface):
                 session.send_command('map bidir {0} {1}'.format(convert_port(src_port), convert_port(dst_port)))
 
         """
-        raise NotImplementedError
+        connection_flow = MappingFlow(cli_handler=self._cli_handler, logger=self._logger)
+        connection_flow.map_bidi(src_port=src_port, dst_port=dst_port)
 
     def map_uni(self, src_port, dst_ports):
         """
@@ -107,17 +113,8 @@ class DriverCommands(DriverCommandsInterface):
                 for dst_port in dst_ports:
                     session.send_command('map {0} also-to {1}'.format(convert_port(src_port), convert_port(dst_port)))
         """
-        self._logger.info('MapUni, SrcPort: {0}, DstPort: {1}'.format(src_port, dst_ports[0]))
-        flow = L1ConnectionsFlow(cli_configurator, logger)
-        flow.map_uni(*action_args)
-        #
-        # with self._cli_handler.default_mode_service() as session:
-        #     mapping_actions = MappingActions(session, self._logger)
-        #
-        #     src = int(src_port.split('/')[-1])
-        #     for dst_port in dst_ports:
-        #         dst = int(dst_port.split('/')[-1])
-        #         mapping_actions.map_uni(src, dst)
+        connection_flow = MappingFlow(cli_handler=self._cli_handler, logger=self._logger)
+        connection_flow.map_uni(src_port=src_port, dst_ports=dst_ports)
 
     def get_resource_description(self, address):
         """
@@ -173,7 +170,8 @@ class DriverCommands(DriverCommandsInterface):
                 if exceptions:
                     raise Exception('self.__class__.__name__', ','.join(exceptions))
         """
-        raise NotImplementedError
+        connection_flow = MappingFlow(cli_handler=self._cli_handler, logger=self._logger)
+        connection_flow.map_clear(ports)
 
     def map_clear_to(self, src_port, dst_ports):
         """
@@ -192,7 +190,8 @@ class DriverCommands(DriverCommandsInterface):
                     _dst_port = convert_port(port)
                     session.send_command('map clear-to {0} {1}'.format(_src_port, _dst_port))
         """
-        raise NotImplementedError
+        connection_flow = MappingFlow(cli_handler=self._cli_handler, logger=self._logger)
+        connection_flow.map_clear_to(src_port=src_port, dst_ports=dst_ports)
 
     def get_attribute_value(self, cs_address, attribute_name):
         """
@@ -259,11 +258,3 @@ class DriverCommands(DriverCommandsInterface):
         :return:
         """
         raise NotImplementedError
-
-
-if __name__ == "__main__":
-    import mock
-
-    logger = mock.MagicMock()
-    runtime_config = mock.MagicMock()
-    dr = DriverCommands(logger=logger, runtime_config=runtime_config)

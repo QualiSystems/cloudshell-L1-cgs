@@ -3,14 +3,13 @@ from collections import defaultdict
 
 from cloudshell.cli.command_template.command_template_executor import CommandTemplateExecutor
 
-from cgs.cli.command_modes import ConfigCommandMode, EnableCommandMode
 from cgs.command_templates import mapping
 from cgs.helpers.errors import ParseFilterError
 from cgs.helpers.errors import UnsupportedPortsInFilterError
 from cgs.helpers.table2dicts import ParseTableError, table2dicts
 
 
-class CgsMappingActions(object):
+class MappingActions(object):
     def __init__(self, cli_service, logger):
         """
         :param cli_service: default mode cli_service
@@ -33,21 +32,14 @@ class CgsMappingActions(object):
                                        command_template=mapping.CONNECT_PORTS).execute_command(src_port=src_port,
                                                                                                dst_port=dst_port)
 
-
-    # def commit(self):
-    #     """
-    #
-    #     :return:
-    #     """
-    #     self.execute_command(COMMIT)
-
     def get_filters(self):
         """
 
         :rtype: Filters
         """
-        with self.enter_command_mode(EnableCommandMode):
-            connections = self.execute_command(SHOW_CONNECTIONS, remove_prompt=True)
+        connections = CommandTemplateExecutor(cli_service=self._cli_service,
+                                              command_template=mapping.SHOW_CONNECTIONS,
+                                              remove_prompt=True).execute_command()
 
         return Filters(self._logger, connections)
 
@@ -95,9 +87,9 @@ class CgsMappingActions(object):
         :param collections.Iterable[str] filter_ids:
         :return:
         """
-        with self.enter_command_mode(ConfigCommandMode):
-            str_ids = ",".join(filter_ids)
-            self.execute_command(DELETE_FILTERS, filter_ids=str_ids)
+        CommandTemplateExecutor(
+            cli_service=self._cli_service,
+            command_template=mapping.DELETE_FILTERS).execute_command(filter_ids=",".join(filter_ids))
 
 
 class Filter(object):
