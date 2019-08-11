@@ -186,7 +186,10 @@ class Filters(object):
         """
         lines = table.splitlines()
         try:
-            dicts = table2dicts(lines[0], lines[1], lines[2:])
+            if "no entries found" in lines[0].lower():
+                dicts = []
+            else:
+                dicts = table2dicts(lines[0], lines[1], lines[2:])
         except ParseTableError:
             self._logger.exception("Unable to parse filters: ")
             raise ParseFilterError("Could not parse filters")
