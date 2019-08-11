@@ -243,6 +243,7 @@
                     </AttributeValues>
                     <ParentModels>
                         <ParentModelName>Generic L1 Module</ParentModelName>
+                        <ParentModelName>Cgs Chassis</ParentModelName>
                     </ParentModels>
                     <Drivers/>
                 </ResourceModel>
