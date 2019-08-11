@@ -62,34 +62,37 @@ class MappingActions(object):
         """
 
         :param list[str] ports:
-        :rtype: collections.Iterable[str]
+        :rtype: list[str]
         """
-        for filter_ in self.get_filters():
-            if set(ports) & {filter_.input_port, filter_.output_port}:
-                yield filter_.id
+        return [filter_.filter_id for filter_ in self.get_filters()
+                if set(ports) & {filter_.input_port, filter_.output_port}]
 
     def get_filters_with_src_and_dst_ports(self, src_port, dst_ports):
         """
 
         :param str src_port:
         :param list[str] dst_ports:
-        :rtype: collections.Iterable[str]
+        :rtype: list[str]
         """
-        for filter_ in self.get_filters():
-            if filter_.input_port == src_port and filter_.output_port in dst_ports:
-                yield filter_.id
+        return [filter_.filter_id for filter_ in self.get_filters()
+                if filter_.input_port == src_port and filter_.output_port in dst_ports]
 
     def remove_filters(self, filter_ids):
         """Remove filters
 
         It's important to delete all needed filters in one command.
         After deleting a filter next filters change their ids
-        :param collections.Iterable[str] filter_ids:
+        :param list[str] filter_ids:
         :return:
         """
-        CommandTemplateExecutor(
-            cli_service=self._cli_service,
-            command_template=mapping.DELETE_FILTERS).execute_command(filter_ids=",".join(filter_ids))
+        if len(filter_ids) > 1:
+            CommandTemplateExecutor(
+                cli_service=self._cli_service,
+                command_template=mapping.DELETE_FILTERS).execute_command(filter_ids=",".join(filter_ids))
+        elif len(filter_ids) == 1:
+            CommandTemplateExecutor(
+                cli_service=self._cli_service,
+                command_template=mapping.DELETE_FILTER).execute_command(filter_id=filter_ids[0])
 
 
 class Filter(object):

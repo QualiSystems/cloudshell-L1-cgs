@@ -91,13 +91,17 @@ class MappingFlow(object):
         :param list[str] ports:
         :return:
         """
+        ports = map(self.convert_port, ports)
+
         with self._cli_handler.enable_mode_service() as cli_service:
             mapping_actions = MappingActions(cli_service=cli_service, logger=self._logger)
             system_actions = SystemActions(cli_service=cli_service, logger=self._logger)
 
             filter_ids = mapping_actions.get_filter_ids_with_ports_in_it(ports)
-            mapping_actions.remove_filters(filter_ids)
-            system_actions.commit()
+
+            with cli_service.enter_mode(self._cli_handler.config_mode):
+                mapping_actions.remove_filters(filter_ids)
+                system_actions.commit()
 
             not_deleted_filter_ids = mapping_actions.get_filter_ids_with_ports_in_it(ports)
             if not_deleted_filter_ids:
@@ -110,13 +114,18 @@ class MappingFlow(object):
         :param list[str] dst_ports:
         :return:
         """
+        src_port = self.convert_port(src_port)
+        dst_ports = map(self.convert_port, dst_ports)
+
         with self._cli_handler.enable_mode_service() as cli_service:
             mapping_actions = MappingActions(cli_service=cli_service, logger=self._logger)
             system_actions = SystemActions(cli_service=cli_service, logger=self._logger)
 
             filter_ids = mapping_actions.get_filters_with_src_and_dst_ports(src_port, dst_ports)
-            mapping_actions.remove_filters(filter_ids)
-            system_actions.commit()
+
+            with cli_service.enter_mode(self._cli_handler.config_mode):
+                mapping_actions.remove_filters(filter_ids)
+                system_actions.commit()
 
             not_deleted_filter_ids = mapping_actions.get_filters_with_src_and_dst_ports(src_port, dst_ports)
             if not_deleted_filter_ids:
