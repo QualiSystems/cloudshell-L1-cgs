@@ -27,15 +27,12 @@ class AutoloadFlow(object):
             # switch_details = autoload_actions.get_switch_details()
 
             chassis = Chassis(resource_id="", address=address, model_name="Cgs Chassis")
-            chassis.set_model_name("model name")
-            chassis.set_serial_number("serial number")
-            chassis.set_os_version("version")
+            # chassis.set_model_name("")
+            # chassis.set_serial_number("")
+            # chassis.set_os_version("")
 
             for port in autoload_actions.get_ports():
-                if "/" in port.port_id:
-                    continue
-
-                port_resource = Port(resource_id=port.port_id)
+                port_resource = Port(resource_id=port.port_id.replace("/", "-"))
                 port_resource.set_port_speed(port.speed)
                 port_resource.set_parent_resource(chassis)
 
