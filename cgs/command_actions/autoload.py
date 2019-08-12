@@ -30,6 +30,14 @@ class AutoloadActions(object):
 
         return Ports(self._logger, ports)
 
+    def get_switch_details(self):
+        """
+
+        :return:
+        """
+        return CommandTemplateExecutor(cli_service=self._cli_service,
+                                       command_template=autoload.SHOW_SYSTEM_DETAILS).execute_command()
+
 
 class Ports(ConsoleTable):
     class Model(ConsoleTable.Model):
