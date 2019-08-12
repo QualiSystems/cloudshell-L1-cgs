@@ -4,9 +4,8 @@ from collections import defaultdict
 from cloudshell.cli.command_template.command_template_executor import CommandTemplateExecutor
 
 from cgs.command_templates import mapping
-from cgs.helpers.errors import ParseFilterError
 from cgs.helpers.errors import UnsupportedPortsInFilterError
-from cgs.helpers.table2dicts import ParseTableError, table2dicts
+from cgs.helpers.table2dicts import ConsoleTable
 
 
 class MappingActions(object):
@@ -95,120 +94,75 @@ class MappingActions(object):
                 command_template=mapping.DELETE_FILTER).execute_command(filter_id=filter_ids[0])
 
 
-class Filter(object):
-    ADMIN_ENABLED = "enabled"
-    ACTION_REDIRECT = "redirect"
-    PORT_PATTERN = re.compile(r"^\d+(/\d+)?$")
+class Filters(ConsoleTable):
+    class Model(ConsoleTable.Model):
+        ADMIN_ENABLED = "enabled"
+        ACTION_REDIRECT = "redirect"
+        PORT_PATTERN = re.compile(r"^\d+(/\d+)?$")
 
-    def __init__(self, filter_id, admin, action, input_port, output_port):
-        """
+        def __init__(self, filter_id, admin, action, input_port, output_port):
+            """
 
-        :param str filter_id:
-        :param str admin:
-        :param str action:
-        :param str input_port:
-        :param str output_port:
-        """
-        self.filter_id = filter_id
-        self.admin = admin
-        self.action = action
-        self.input_port = input_port
-        self.output_port = output_port
-        self.validate()
+            :param str filter_id:
+            :param str admin:
+            :param str action:
+            :param str input_port:
+            :param str output_port:
+            """
+            self.filter_id = filter_id
+            self.admin = admin
+            self.action = action
+            self.input_port = input_port
+            self.output_port = output_port
+            self.validate()
 
-    @classmethod
-    def from_dict(cls, data):
-        """
+        @classmethod
+        def from_dict(cls, data):
+            """
 
-        :param dict data:
-        :return:
-        """
-        return cls(
-            filter_id=data["Filter"],
-            admin=data["Admin"],
-            action=data["Action"],
-            input_port=data["Input"],
-            output_port=data["Output"],
-        )
+            :param dict data:
+            :return:
+            """
+            return cls(
+                filter_id=data["Filter"],
+                admin=data["Admin"],
+                action=data["Action"],
+                input_port=data["Input"],
+                output_port=data["Output"],
+            )
 
-    @property
-    def is_enabled(self):
-        """
+        @property
+        def is_enabled(self):
+            """
 
-        :rtype: bool
-        """
-        return self.admin.lower() == self.ADMIN_ENABLED
+            :rtype: bool
+            """
+            return self.admin.lower() == self.ADMIN_ENABLED
 
-    @property
-    def is_redirect(self):
-        """
+        @property
+        def is_redirect(self):
+            """
 
-        :rtype: bool
-        """
-        return self.action.lower() == self.ACTION_REDIRECT
+            :rtype: bool
+            """
+            return self.action.lower() == self.ACTION_REDIRECT
 
-    def validate(self):
-        """
+        def validate(self):
+            """
 
-        :return:
-        """
-        self.validate_port(self.input_port)
-        self.validate_port(self.output_port)
+            :return:
+            """
+            self.validate_port(self.input_port)
+            self.validate_port(self.output_port)
 
-    def validate_port(self, port):
-        """
+        def validate_port(self, port):
+            """
 
-        :param str port:
-        :return:
-        """
-        if not self.PORT_PATTERN.match(port):
-            raise UnsupportedPortsInFilterError
-
-
-class Filters(object):
-    def __init__(self, logger, table=None):
-        """
-
-        :param logging.Logger logger:
-        :param str table:
-        """
-        self._logger = logger
-        self.filters_list = []
-
-        if table is not None:
-            self.update_filters_from_table(table)
-
-    def __iter__(self):
-        return iter(self.filters_list)
-
-    def update_filters_from_table(self, table):
-        """Update filters from show filters output
-
-        :param str table:
-        :return:
-        """
-        lines = table.splitlines()
-        try:
-            if "no entries found" in lines[0].lower():
-                dicts = []
-            else:
-                dicts = table2dicts(lines[0], lines[1], lines[2:])
-        except ParseTableError:
-            self._logger.exception("Unable to parse filters: ")
-            raise ParseFilterError("Could not parse filters")
-
-        self.filters_list = []
-        for dict_ in dicts:
-            try:
-                filter_ = Filter.from_dict(dict_)
-            except UnsupportedPortsInFilterError:
-                # fixme really?
-                # fixme just ignore?
-                self._logger.debug(
-                    "We support only one port in the filter. Line was: \n {}".format(dict_.original_line)
-                )
-            else:
-                self.filters_list.append(filter_)
+            :param str port:
+            :return:
+            """
+            if not self.PORT_PATTERN.match(port):
+                raise UnsupportedPortsInFilterError
 
     def get_connected_ports(self):
         """

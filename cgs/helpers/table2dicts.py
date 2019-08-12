@@ -1,5 +1,8 @@
 from collections import Mapping
 
+from cgs.helpers.errors import ParseFilterError
+from cgs.helpers.errors import UnsupportedPortsInFilterError
+
 
 class ParseTableError(Exception):
     """Parse table base error"""
@@ -24,6 +27,81 @@ class ParsedTableDict(Mapping):
 
     def __getitem__(self, k):
         return self._storage[k]
+
+
+class ConsoleTable(object):
+    """Will transform console output table into list of models"""
+
+    class Model(object):
+        """Model that represents row data"""
+        def __init__(self, **kwargs):
+            """
+
+            :param dict kwargs:
+            """
+            for attr, val in kwargs.iteritems():
+                setattr(self, attr, val)
+            self.validate()
+
+        @classmethod
+        def from_dict(cls, data):
+            """
+
+            :param dict data:
+            :return:
+            """
+            return cls(**{key.lower().replace(" ", "_"): val for key, val in data.items()})
+
+        def validate(self):
+            """
+
+            :return:
+            """
+            pass
+
+    def __init__(self, logger, table=None):
+        """
+
+        :param logging.Logger logger:
+        :param str table:
+        """
+        self._logger = logger
+        self.rows = []
+
+        if table is not None:
+            self.update_ports_from_table(table)
+
+    def __iter__(self):
+        return iter(self.rows)
+
+    def update_ports_from_table(self, table):
+        """Update ports from show filters output
+
+        :param str table:
+        :return:
+        """
+        lines = table.splitlines()
+        try:
+            if "no entries found" in lines[0].lower():
+                dicts = []
+            else:
+                dicts = table2dicts(lines[0], lines[1], lines[2:])
+        except ParseTableError:
+            self._logger.exception("Unable to parse ports: ")
+            raise ParseFilterError("Could not parse ports")
+
+        self.rows = []
+        for dict_ in dicts:
+            try:
+                model = self.Model.from_dict(dict_)
+            except UnsupportedPortsInFilterError:
+                # fixme really?
+                # fixme just ignore?
+                self._logger.debug(
+                    "We support only one port in the filter. Line was: \n {}".format(dict_.original_line)
+                )
+            else:
+                self.rows.append(model)
 
 
 def table2dicts(name_line, separator_line, data_lines):
