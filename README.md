@@ -16,7 +16,6 @@ Document version: 1.0
 * [Importing and Configuring the Shell](#importing-and-configuring-the-shell)
 * [Updating Python Dependencies for Shells](#updating-python-dependencies-for-shells)
 * [Upgrading the L1 Shell and Datamodel](#upgrading-the-l1-shell-and-datamodel)
-* [Typical Workflows](#typical-workflows)
 * [References](#references)
 * [Release Notes](#release-notes)
 
@@ -34,21 +33,19 @@ The Cgs L1 shell provides you with the capability to communicate with network to
 
 The shell allows CloudShell users to interact with the device, for example, create and modify route mappings, get device information, and more.
 
-For more information on the **Cgs**, see the official **[Device Manufacturer]** product documentation.
+For more information on the **Cgs**, see the official [**CGS**](https://www.cgstowernetworks.com) product documentation.
 
 ### Standard version
 The Cgs L1 shell is based on the [**Layer 1 Switch Shell Standard**](https://github.com/QualiSystems/shell-L1-template).
 
 ### Supported OS
-▪ [OS Name]
+▪ COS Version 2.7.0
 
 ### Requirements
 
 Release: **Cgs L1 Shell**
 
 ▪ CloudShell version: 8.0 and above
-
-▪ Other: [version x.x]
 
 ### Data Model
 
@@ -192,11 +189,6 @@ L1 shells do not have separate Python dependencies files. All dependencies are i
 	*C:\Program Files (x86)\QualiSystems\CloudShell\Server\Configuration*.
 
 6. Run *C:\Program Files (x86)\QualiSystems\CloudShell\Server\QsMigrationUtility.exe*.
-
-
-# Typical Workflows
-
-(add as necessary depending on the shell)
 
 # References
 To download and share integrations, see [Quali Community's Integrations](https://community.quali.com/integrations). 
