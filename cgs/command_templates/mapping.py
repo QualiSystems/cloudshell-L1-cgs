@@ -5,4 +5,4 @@ CONNECT_PORTS = CommandTemplate(
 )
 DELETE_FILTER = CommandTemplate("filter delete filter {filter_id}")
 DELETE_FILTERS = CommandTemplate("filter delete range {filter_ids}")
-SHOW_CONNECTIONS = CommandTemplate("show filters")
+SHOW_CONNECTIONS = CommandTemplate("show filters filter")
